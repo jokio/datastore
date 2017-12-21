@@ -1,0 +1,15 @@
+{
+	"name": "simple-example",
+	"version": "0.1.1",
+	"scripts": {
+		"start": "ts-node index.ts"
+	},
+	"author": "Jok Entertainers",
+	"license": "MIT",
+	"dependencies": {
+		"@jokio/graphql": "^0.1.5"
+	},
+	"devDependencies": {
+		"ts-node": "^4.0.2"
+	}
+}
