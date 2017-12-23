@@ -5,6 +5,7 @@
 	"main": "dist/index.js",
 	"types": "dist/index.d.js",
 	"scripts": {
+		"start-simple": "ts-node src/examples/simple",
 		"start-ddd": "ts-node src/examples/ddd",
 		"test": "echo 'Everything is awesome!'",
 		"dev": "nodemon"

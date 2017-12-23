@@ -42,7 +42,7 @@ export class DbTransaction<TEntity extends Entity> extends DbSetBase<TEntity> {
 
 
 
-export type ProcessTransaction = (tran: DatastoreTransaction) => Promise<void>
+export type ProcessTransaction = (tran: DatastoreTransaction, datastore: Datastore) => Promise<void>
 
 export const configureTransaction = (datastore: Datastore) => {
 	return async (process: ProcessTransaction) => {
@@ -50,7 +50,7 @@ export const configureTransaction = (datastore: Datastore) => {
 
 		try {
 			await tran.run();
-			await process(tran);
+			await process(tran, datastore);
 			await tran.commit();
 
 			return true;

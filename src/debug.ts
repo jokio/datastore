@@ -39,14 +39,14 @@ const datastore = new Datastore({ namespace: 'dev' });
 
 
 
-const run = async () => {
-	const userAggr = resolver.get(UserAggregate);
+// const run = async () => {
+// 	const userAggr = resolver.get(UserAggregate);
 
-	await userAggr.load(1);
-	await userAggr.resetPassword();
-	await userAggr.save();
-}
-run();
+// 	await userAggr.load(1);
+// 	await userAggr.resetPassword();
+// 	await userAggr.save();
+// }
+// run();
 
 // class AggregatRoot {
 // 	resolver: AggregateResolver;

@@ -1,4 +1,4 @@
-import { Entity, Aggregate, AggregateResolver, Datastore } from "../index";
+import { Entity, Aggregate, AggregateResolver, Datastore } from "../";
 
 
 // 1. Declare Types
