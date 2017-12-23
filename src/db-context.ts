@@ -3,13 +3,13 @@ import { ProcessTransaction, configureTransaction } from "./db-transaction";
 
 
 export class DbContext {
-	private doTransaction: (process: ProcessTransaction) => Promise<void>;
+	private doTransaction: (process: ProcessTransaction) => Promise<boolean>;
 
 	constructor(datastore: Datastore) {
 		this.doTransaction = configureTransaction(datastore);
 	}
 
 	transaction(process: ProcessTransaction) {
-		this.doTransaction(process);
+		return this.doTransaction(process);
 	}
 }
