@@ -8,8 +8,7 @@
 ## How to use
 Simple:
 ```ts
-import * as Datastore from '@google-cloud/datastore';
-import { DbSet, configureTransaction, Entity } from '@jokio/datastore';
+import { DbSet, configureTransaction, Entity, Datastore } from '@jokio/datastore';
 
 const datastore = new Datastore({});
 
