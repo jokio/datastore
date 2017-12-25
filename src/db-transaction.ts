@@ -17,15 +17,15 @@ export class DbTransaction<TEntity extends Entity> extends DbSetBase<TEntity> {
 	) { super(kind, datastore); }
 
 
-	protected async onSave(entities: OneOrMany<object>): Promise<CommitResponse | undefined> {
+	protected onSave(entities: OneOrMany<object>): Promise<CommitResponse | undefined> {
 		this.transaction.save(entities);
 
 		return new Promise<any>(resolve => resolve(undefined));
 	}
 
 	protected async onGet<TResult = any>(key: DatastoreKey, options?: QueryOptions): Promise<TResult | undefined> {
-		const [result]: [any] = await this.transaction.get(key, options);
 
+		const [result]: [any] = await this.transaction.get(key, options);
 		return result;
 	}
 
@@ -75,8 +75,8 @@ export const configureDbTransaction = <TEntity extends Entity>(kind: string, dat
 
 			await tran.run();
 			await process(dbTransaction, tran);
-			await tran.commit();
 
+			await tran.commit();
 			isSuccess = true;
 		}
 		catch (err) {

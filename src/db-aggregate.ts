@@ -1,11 +1,11 @@
 import * as Datastore from '@google-cloud/datastore'
 import { QueryOptions, QueryInfo } from '@google-cloud/datastore/query';
 import { DatastoreTransaction } from '@google-cloud/datastore/transaction';
+import { AnyEvent, EventType, flushOnce } from '@jokio/ts-events';
 import { Entity } from './types';
 import { DbSet } from './db-set';
 import { ProcessDbTransaction, DbTransaction, configureDbTransaction } from './db-transaction';
-import { QueryProcessor } from './db-set-base';
-import { AnyEvent, EventType, flushOnce } from 'ts-events';
+import { QueryProcessor, DbSetBase } from './db-set-base';
 
 export interface AggregateConstructor<T> {
 	new(datastore: Datastore, transaction?: DatastoreTransaction): T;
@@ -21,49 +21,60 @@ export class DomainEvent<TData> extends AnyEvent<Event<TData>>{ }
 export class Aggregate<TState extends Entity> {
 
 	protected state: TState;
-	private db: DbSet<TState>;
+	private db: DbSetBase<TState>;
 
 	private doTransaction: (process: ProcessDbTransaction<TState>, onFinally?: () => void) => Promise<boolean>;
 
-	constructor(private kind: string, private datastore: Datastore, private parentTransaction?: DatastoreTransaction) {
-		this.db = new DbSet<TState>(this.kind, this.datastore);
+	constructor(private kind: string, private datastore: Datastore, protected parentTransaction?: DatastoreTransaction) {
+
+		this.db = this.parentTransaction
+			? new DbTransaction<TState>(this.kind, this.datastore, this.parentTransaction)
+			: new DbSet<TState>(this.kind, this.datastore);
+
 		this.doTransaction = configureDbTransaction(kind, datastore);
 	}
 
 	async load(id: any) {
-		this.state = await this.db.get(id);
+
+		if (this.parentTransaction) {
+			const dbTransaction = new DbTransaction<TState>(this.kind, this.datastore, this.parentTransaction);
+			this.state = await dbTransaction.get(id);
+		}
+		else {
+			this.state = await this.db.get(id);
+		}
 
 		return this.state;
 	}
 
-	protected save<T>(Event: DomainEvent<T>, data: T) {
-		const doAction = async (x: DbTransaction<TState>, transaction: DatastoreTransaction) => {
+	protected async save<T>(Event: DomainEvent<T>, data: T) {
 
+		const doSave = async (dbTran: DbTransaction<TState>, transaction: DatastoreTransaction) => {
 			if (!this.state)
 				return;
 
 			if (this.state.lastUpdatedAt) {
-				const item = await x.get(this.state.id);
+				const item = await dbTran.get(this.state.id);
 
-				if (item.lastUpdatedAt != this.state.lastUpdatedAt)
+				if (item.lastUpdatedAt.toString() != this.state.lastUpdatedAt.toString())
 					throw new Error('VERSION_CHANGED');
 			}
 
-			await x.save(this.state);
+			await dbTran.save(this.state);
 
-			Event.post({ transaction, data });
+			await Event.post({ transaction, data });
 		}
 
 		if (this.parentTransaction) {
 
 			const dbTransaction = new DbTransaction<TState>(this.kind, this.datastore, this.parentTransaction);
 
-			doAction(dbTransaction, this.parentTransaction);
+			await doSave(dbTransaction, this.parentTransaction);
 
 			return true;
 		}
 
-		return this.transaction(doAction, flushOnce);
+		return this.transaction(doSave, flushOnce);
 	}
 
 	query(queryProcessor?: QueryProcessor, options?: QueryOptions) {

@@ -54,6 +54,7 @@ export abstract class DbSetBase<TEntity extends Entity> {
 			return null;
 
 		const key = this.datastore.key([this.kind, id.toString()]);
+
 		const result = await this.onGet(key);
 
 		return result;

@@ -20,6 +20,7 @@ export class DbSet<TEntity extends Entity> extends DbSetBase<TEntity> {
 	}
 
 	protected async onGet<TResult = any>(key: DatastoreKey, options?: QueryOptions): Promise<TResult | undefined> {
+
 		const [result]: [any] = await this.datastore.get(key, options);
 
 		return result;
