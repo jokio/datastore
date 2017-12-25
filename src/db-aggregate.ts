@@ -30,8 +30,10 @@ export class Aggregate<TState extends Entity> {
 		this.doTransaction = configureDbTransaction(kind, datastore);
 	}
 
-	load(id: any) {
-		this.db.get(id).then(x => this.state = x);
+	async load(id: any) {
+		this.state = await this.db.get(id);
+
+		return this.state;
 	}
 
 	protected save<T>(Event: DomainEvent<T>, data: T) {
@@ -64,11 +66,11 @@ export class Aggregate<TState extends Entity> {
 		return this.transaction(doAction, flushOnce);
 	}
 
-	query(queryProcessor: QueryProcessor, options: QueryOptions) {
+	query(queryProcessor?: QueryProcessor, options?: QueryOptions) {
 		return this.db.query(queryProcessor, options);
 	}
 
-	queryWithMetadata(queryProcessor: QueryProcessor, options: QueryOptions) {
+	queryWithMetadata(queryProcessor?: QueryProcessor, options?: QueryOptions) {
 		return this.db.queryWithInfo(queryProcessor, options);
 	}
 
