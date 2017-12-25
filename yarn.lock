@@ -1985,6 +1985,10 @@ tough-cookie@~2.3.0, tough-cookie@~2.3.3:
   dependencies:
     punycode "^1.4.1"
 
+ts-events@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/ts-events/-/ts-events-3.2.0.tgz#0ee458c7ae12e5126edf9570bd1a963694ef2fc6"
+
 ts-node@4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-4.0.1.tgz#4d368088b50c382d78285c029784ea0f32a4eb5c"
