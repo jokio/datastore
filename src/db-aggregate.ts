@@ -11,12 +11,13 @@ export type DomainEventAction<TData> = (data: TData) => Promise<void>;
 
 export class DomainEvent<TData> extends Event<DomainEventData<TData>> { }
 
-export class Aggregate<TState extends Entity> {
+export class AggregateRoot<TState extends Entity> {
 
 	protected state: TState;
 	private db: DbSetBase<TState>;
 
 	private doTransaction: (process: ProcessDbTransaction<TState>) => Promise<void>;
+
 
 	constructor(private kind: string, private datastore: Datastore, protected parentTransaction?: DatastoreTransaction) {
 
@@ -26,6 +27,7 @@ export class Aggregate<TState extends Entity> {
 
 		this.doTransaction = configureDbTransaction(kind, datastore);
 	}
+
 
 	async load(id: any) {
 
@@ -63,9 +65,13 @@ export class Aggregate<TState extends Entity> {
 			const dbTransaction = new DbTransaction<TState>(this.kind, this.datastore, this.parentTransaction);
 
 			await doSave(dbTransaction, this.parentTransaction);
+
+			return this.state;
 		}
 
-		return this.transaction(doSave);
+		await this.transaction(doSave);
+
+		return this.state;
 	}
 
 	query(queryProcessor?: QueryProcessor, options?: QueryOptions) {
@@ -81,7 +87,11 @@ export class Aggregate<TState extends Entity> {
 	}
 }
 
-export class AggregateResolver {
+export class Aggregate<TState> {
+	constructor(protected state: TState) { }
+}
+
+export class AggregateRootResolver {
 	constructor(private datastore: Datastore) { }
 
 	get<T>(aggregateType: AggregateConstructor<T>, transaction?: DatastoreTransaction): T {

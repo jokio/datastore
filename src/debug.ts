@@ -6,9 +6,9 @@ import {
 	ProcessTransaction,
 	ProcessDbTransaction,
 	DbTransaction,
-	Aggregate,
+	AggregateRoot,
 	AggregateConstructor,
-	AggregateResolver
+	AggregateRootResolver
 } from './';
 
 const datastore = new Datastore({ namespace: 'dev' });

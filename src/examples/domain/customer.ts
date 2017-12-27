@@ -1,7 +1,7 @@
-import { Aggregate, Entity, DomainEvent } from "../../";
+import { AggregateRoot, Entity, DomainEvent } from "../../";
 
 
-export class CustomerAggregate extends Aggregate<CustomerState> {
+export class CustomerAggregate extends AggregateRoot<CustomerState> {
 
 	static Events = {
 		Registered: new DomainEvent<CustomerRegisteredEvent>(),
@@ -56,11 +56,7 @@ export class CustomerAggregate extends Aggregate<CustomerState> {
 			totalCount: this.state.accountsCount,
 		}
 
-		const isSuccess = await this.save(CustomerAggregate.Events.AccountsCountUpdated, eventData);
-		if (!isSuccess)
-			throw new Error('Operation Failed');
-
-		return this.state;
+		return await this.save(CustomerAggregate.Events.AccountsCountUpdated, eventData);
 	}
 }
 

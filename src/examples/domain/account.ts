@@ -1,8 +1,8 @@
-import { Aggregate, Entity, DomainEvent } from "../../";
+import { AggregateRoot, Entity, DomainEvent } from "../../";
 
 
 
-export class AccountAggregate extends Aggregate<AccountState> {
+export class AccountAggregate extends AggregateRoot<AccountState> {
 
 	static Events = {
 		Registered: new DomainEvent<RegisteredEvent>()
