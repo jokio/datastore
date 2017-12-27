@@ -99,7 +99,7 @@ export abstract class AggregateRoot<TState extends Entity> {
 	}
 
 	protected transaction(process: ProcessDbTransaction<TState>) {
-		this.doTransaction(process);
+		return this.doTransaction(process);
 	}
 
 
