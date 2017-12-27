@@ -124,7 +124,7 @@ export abstract class AggregateRoot<TState extends Entity> {
 
 export abstract class Aggregate<TState> {
 
-	abstract get defaultState(): TState
+	abstract defaultState: TState
 
 	state: TState;
 
