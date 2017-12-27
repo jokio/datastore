@@ -43,10 +43,13 @@ export abstract class AggregateRoot<TState extends Entity> {
 
 		if (this.aggregates) {
 			for (let i in this.aggregates) {
-				if (!this.aggregates[i] || !this.aggregates[i].load) continue;
+				const aggr = this.aggregates[i];
+				if (!aggr) continue;
 
-				this.aggregates[i].load(this.state[i]);
+				aggr.state = this.state[i] || aggr.defaultState;
 			}
+
+			this.updateFromAggregateStates();
 		}
 
 		this.stateLoaded(this.state);
@@ -59,8 +62,11 @@ export abstract class AggregateRoot<TState extends Entity> {
 	protected async save<T>(Event: DomainEvent<T>, data: T) {
 
 		const doSave = async (dbTran: DbTransaction<TState>, transaction: DatastoreTransaction) => {
+
 			if (!this.state)
 				return;
+
+			this.updateFromAggregateStates();
 
 			if (this.state.lastUpdatedAt) {
 				const item = await dbTran.get(this.state.id);
@@ -99,26 +105,31 @@ export abstract class AggregateRoot<TState extends Entity> {
 	protected transaction(process: ProcessDbTransaction<TState>) {
 		this.doTransaction(process);
 	}
+
+	private updateFromAggregateStates() {
+		if (!this.aggregates) return;
+
+		const defaultState: any = {};
+
+		this.state = this.state || defaultState;
+
+		for (let i in this.aggregates) {
+			const aggr = this.aggregates[i];
+			if (!aggr) continue;
+
+			this.state[i] = aggr.state || aggr.defaultState;
+		}
+	}
 }
 
 export abstract class Aggregate<TState> {
 
 	abstract get defaultState(): TState
 
-	private _state: TState;
-	protected get state(): TState {
-		return this._state || this.defaultState;
-	}
-	protected set state(value: TState) {
-		this._state = value;
-	}
+	state: TState;
 
 	constructor() {
 		this.state = this.defaultState;
-	}
-
-	load(state: TState) {
-		this.state = state;
 	}
 }
 
