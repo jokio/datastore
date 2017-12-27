@@ -11,10 +11,12 @@ export type DomainEventAction<TData> = (data: TData) => Promise<void>;
 
 export class DomainEvent<TData> extends Event<DomainEventData<TData>> { }
 
-export class AggregateRoot<TState extends Entity> {
+export abstract class AggregateRoot<TState extends Entity> {
 
 	protected state: TState;
 	private db: DbSetBase<TState>;
+
+	protected aggregates: { [key: string]: Aggregate<any> }
 
 	private doTransaction: (process: ProcessDbTransaction<TState>) => Promise<void>;
 
@@ -39,10 +41,20 @@ export class AggregateRoot<TState extends Entity> {
 			this.state = await this.db.get(id);
 		}
 
+		if (this.aggregates) {
+			for (let i in this.aggregates) {
+				if (!this.aggregates[i] || !this.aggregates[i].load) continue;
 
+				this.aggregates[i].load(this.state[i]);
+			}
+		}
+
+		this.stateLoaded(this.state);
 
 		return this.state;
 	}
+
+	protected stateLoaded(state: TState) { }
 
 	protected async save<T>(Event: DomainEvent<T>, data: T) {
 
