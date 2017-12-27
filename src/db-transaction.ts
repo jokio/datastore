@@ -66,9 +66,8 @@ export const configureTransaction = (datastore: Datastore) => {
 export type ProcessDbTransaction<TEntity extends Entity> = (tran: DbTransaction<TEntity>, datastoreTran: DatastoreTransaction) => Promise<void>
 
 export const configureDbTransaction = <TEntity extends Entity>(kind: string, datastore: Datastore) => {
-	return async (process: ProcessDbTransaction<TEntity>, onFinally?: () => Promise<void>) => {
+	return async (process: ProcessDbTransaction<TEntity>) => {
 		const tran = datastore.transaction();
-		let isSuccess = false;
 
 		try {
 			const dbTransaction = new DbTransaction<TEntity>(kind, datastore, tran);
@@ -77,16 +76,10 @@ export const configureDbTransaction = <TEntity extends Entity>(kind: string, dat
 			await process(dbTransaction, tran);
 
 			await tran.commit();
-			isSuccess = true;
 		}
 		catch (err) {
-			console.warn(err);
 			tran.rollback(err);
+			throw err;
 		}
-
-		if (onFinally)
-			await onFinally();
-
-		return isSuccess;
 	}
 }

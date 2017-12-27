@@ -16,7 +16,7 @@ export class Aggregate<TState extends Entity> {
 	protected state: TState;
 	private db: DbSetBase<TState>;
 
-	private doTransaction: (process: ProcessDbTransaction<TState>, onFinally?: () => Promise<void>) => Promise<boolean>;
+	private doTransaction: (process: ProcessDbTransaction<TState>) => Promise<void>;
 
 	constructor(private kind: string, private datastore: Datastore, protected parentTransaction?: DatastoreTransaction) {
 
@@ -63,8 +63,6 @@ export class Aggregate<TState extends Entity> {
 			const dbTransaction = new DbTransaction<TState>(this.kind, this.datastore, this.parentTransaction);
 
 			await doSave(dbTransaction, this.parentTransaction);
-
-			return true;
 		}
 
 		return this.transaction(doSave);
@@ -78,8 +76,8 @@ export class Aggregate<TState extends Entity> {
 		return this.db.queryWithInfo(queryProcessor, options);
 	}
 
-	protected transaction(process: ProcessDbTransaction<TState>, onFinallly?: () => Promise<void>) {
-		return this.doTransaction(process, onFinallly);
+	protected transaction(process: ProcessDbTransaction<TState>) {
+		this.doTransaction(process);
 	}
 }
 

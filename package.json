@@ -1,6 +1,6 @@
 {
 	"name": "@jokio/datastore",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"description": "Helper library for Google Cloud Datastore",
 	"main": "dist/index.js",
 	"types": "dist/index.d.js",
