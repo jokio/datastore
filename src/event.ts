@@ -17,11 +17,11 @@ export class Event<TData>  {
 		}
 	}
 
-	post(eventData): Promise<void> {
+	post(eventData) {
 		if (!this.actions.length) return;
 
-		this.actions.map(x => x(eventData));
-		Promise.all(this.actions)
+		const promises = this.actions.map(x => x(eventData));
+		return Promise.all(promises)
 	}
 
 	attach(action: EventAction<TData>) {
