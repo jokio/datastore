@@ -6,14 +6,14 @@ const datastore = new Datastore({ credentials });
 const domain = new AggregateResolver(datastore);
 
 
-AccountAggregate.Events.Registered.attachSync(async x => {
+AccountAggregate.Events.Registered.attach(async x => {
 	const customer = domain.get(CustomerAggregate, x.transaction)
 
 	await customer.load(x.data.customerId);
 	await customer.updateAccountsCount({ operationType: 'add' });
 })
 
-CustomerAggregate.Events.AccountsCountUpdated.attachAsync(async x => {
+CustomerAggregate.Events.AccountsCountUpdated.attach(async x => {
 	console.log("AccountsCountUpdated");
 })
 

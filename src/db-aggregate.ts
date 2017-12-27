@@ -1,29 +1,22 @@
 import * as Datastore from '@google-cloud/datastore'
 import { QueryOptions, QueryInfo } from '@google-cloud/datastore/query';
 import { DatastoreTransaction } from '@google-cloud/datastore/transaction';
-import { AnyEvent, EventType, flushOnce } from '@jokio/ts-events';
 import { Entity } from './types';
 import { DbSet } from './db-set';
 import { ProcessDbTransaction, DbTransaction, configureDbTransaction } from './db-transaction';
 import { QueryProcessor, DbSetBase } from './db-set-base';
+import { Event } from './event';
 
-export interface AggregateConstructor<T> {
-	new(datastore: Datastore, transaction?: DatastoreTransaction): T;
-}
+export type DomainEventAction<TData> = (data: TData) => Promise<void>;
 
-export interface Event<TData> {
-	transaction: DatastoreTransaction
-	data: TData
-}
-
-export class DomainEvent<TData> extends AnyEvent<Event<TData>>{ }
+export class DomainEvent<TData> extends Event<DomainEventData<TData>> { }
 
 export class Aggregate<TState extends Entity> {
 
 	protected state: TState;
 	private db: DbSetBase<TState>;
 
-	private doTransaction: (process: ProcessDbTransaction<TState>, onFinally?: () => void) => Promise<boolean>;
+	private doTransaction: (process: ProcessDbTransaction<TState>, onFinally?: () => Promise<void>) => Promise<boolean>;
 
 	constructor(private kind: string, private datastore: Datastore, protected parentTransaction?: DatastoreTransaction) {
 
@@ -74,7 +67,7 @@ export class Aggregate<TState extends Entity> {
 			return true;
 		}
 
-		return this.transaction(doSave, flushOnce);
+		return this.transaction(doSave);
 	}
 
 	query(queryProcessor?: QueryProcessor, options?: QueryOptions) {
@@ -85,11 +78,10 @@ export class Aggregate<TState extends Entity> {
 		return this.db.queryWithInfo(queryProcessor, options);
 	}
 
-	protected transaction(process: ProcessDbTransaction<TState>, onFinallly?: () => void) {
+	protected transaction(process: ProcessDbTransaction<TState>, onFinallly?: () => Promise<void>) {
 		return this.doTransaction(process, onFinallly);
 	}
 }
-
 
 export class AggregateResolver {
 	constructor(private datastore: Datastore) { }
@@ -97,4 +89,15 @@ export class AggregateResolver {
 	get<T>(aggregateType: AggregateConstructor<T>, transaction?: DatastoreTransaction): T {
 		return new aggregateType(this.datastore, transaction);
 	}
+}
+
+
+// types
+export interface AggregateConstructor<T> {
+	new(datastore: Datastore, transaction?: DatastoreTransaction): T;
+}
+
+export interface DomainEventData<TData> {
+	transaction: DatastoreTransaction
+	data: TData
 }
