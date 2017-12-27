@@ -7,22 +7,23 @@ const datastore = new Datastore({ credentials });
 const domain = new AggregateRootResolver(datastore);
 
 
-AccountAggregate.Events.Registered.attach(async x => {
-	const customer = domain.get(CustomerAggregate, x.transaction)
+// AccountAggregate.Events.Registered.attach(async x => {
+// 	const customer = domain.get(CustomerAggregate, x.transaction)
 
-	await customer.load(x.data.customerId);
-	await customer.updateAccountsCount({ operationType: 'add' });
-})
+// 	await customer.load(x.data.customerId);
+// 	await customer.updateAccountsCount({ operationType: 'add' });
+// })
 
 CustomerAggregate.Events.Registered.attach(async x => {
-	const p = new Promise(resolve => setTimeout(() => resolve('done'), 1000));
-	await p;
+	console.log('customer created');
 })
 
 
 async function run() {
-	const customer = domain.get(CustomerAggregate);
-	await customer.register({ name: 'Test5' });
+	new CustomerAggregate(new Datastore({ credentials }), null).register({ name: "ez1" });
+	new CustomerAggregate(new Datastore({ credentials }), null).register({ name: "ez2" });
+	new CustomerAggregate(new Datastore({ credentials }), null).register({ name: "ez3" });
+	new CustomerAggregate(new Datastore({ credentials }), null).register({ name: "ez4" });
 }
 
 run();

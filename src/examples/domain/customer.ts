@@ -17,7 +17,7 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 	}
 
 
-	async register(props: RegisterCustomerProps) {
+	register(props: RegisterCustomerProps) {
 
 		const defaultProps = {
 			id: Date.now().toString(),
@@ -38,7 +38,7 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 
 		this.aggregates.operations.add();
 
-		return await this.save(CustomerAggregate.Events.Registered, eventData)
+		return this.save(CustomerAggregate.Events.Registered, eventData)
 	}
 
 	async updateAccountsCount(props: UpdateAccountsCountProps) {
