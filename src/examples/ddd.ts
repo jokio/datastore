@@ -13,8 +13,8 @@ AccountAggregate.Events.Registered.attach(async x => {
 	await customer.updateAccountsCount({ operationType: 'add' });
 })
 
-CustomerAggregate.Events.AccountsCountUpdated.attach(async x => {
-	console.log("AccountsCountUpdated");
+CustomerAggregate.Events.Registered.attach(async x => {
+	console.log("Registered");
 })
 
 
