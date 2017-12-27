@@ -1,4 +1,4 @@
-import { AggregateRoot, Entity, DomainEvent } from "../../";
+import { AggregateRoot, Entity, DomainEvent, Aggregate } from "../../";
 
 
 export class CustomerAggregate extends AggregateRoot<CustomerState> {
@@ -8,6 +8,9 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 		AccountsCountUpdated: new DomainEvent<AccountsCountUpdatedEvent>(),
 	}
 
+	aggregates = {
+		operations: new OperationsAggregate()
+	}
 
 	constructor(datastore, parentTransaction) {
 		super('Customers', datastore, parentTransaction)
@@ -19,6 +22,7 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 		const defaultProps = {
 			id: Date.now().toString(),
 			accountsCount: 0,
+			operations: this.aggregates.operations.defaultState,
 		}
 
 		this.state = {
@@ -32,11 +36,9 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 			accountsCount: this.state.accountsCount,
 		}
 
-		const isSuccess = await this.save(CustomerAggregate.Events.Registered, eventData)
-		if (!isSuccess)
-			throw new Error('Operation Failed');
+		this.aggregates.operations.add();
 
-		return this.state;
+		return await this.save(CustomerAggregate.Events.Registered, eventData)
 	}
 
 	async updateAccountsCount(props: UpdateAccountsCountProps) {
@@ -65,6 +67,7 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 export interface CustomerState extends Entity {
 	name: string
 	accountsCount: number
+	operations: OperationsState
 }
 
 
@@ -88,4 +91,39 @@ export interface CustomerRegisteredEvent {
 export interface AccountsCountUpdatedEvent {
 	customerId: string
 	totalCount: number
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export class OperationsAggregate extends Aggregate<OperationsState> {
+
+	defaultState = {
+		count: 0
+	}
+
+	add() {
+		this.state.count++;
+	}
+}
+
+
+
+// Types
+export interface OperationsState {
+	count: number
 }

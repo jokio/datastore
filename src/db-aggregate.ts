@@ -42,13 +42,7 @@ export abstract class AggregateRoot<TState extends Entity> {
 		}
 
 		if (this.aggregates) {
-			for (let i in this.aggregates) {
-				const aggr = this.aggregates[i];
-				if (!aggr) continue;
-
-				aggr.state = this.state[i] || aggr.defaultState;
-			}
-
+			this.updateToAggregateStates();
 			this.updateFromAggregateStates();
 		}
 
@@ -76,6 +70,8 @@ export abstract class AggregateRoot<TState extends Entity> {
 			}
 
 			await dbTran.save(this.state);
+
+			this.updateToAggregateStates();
 
 			await Event.post({ transaction, data });
 		}
@@ -106,6 +102,20 @@ export abstract class AggregateRoot<TState extends Entity> {
 		this.doTransaction(process);
 	}
 
+
+	private updateToAggregateStates() {
+		if (!this.aggregates) return;
+
+		const defaultState: any = {};
+
+		for (let i in this.aggregates) {
+			const aggr = this.aggregates[i];
+			if (!aggr) continue;
+
+			aggr.state = this.state[i];
+		}
+	}
+
 	private updateFromAggregateStates() {
 		if (!this.aggregates) return;
 
@@ -117,7 +127,7 @@ export abstract class AggregateRoot<TState extends Entity> {
 			const aggr = this.aggregates[i];
 			if (!aggr) continue;
 
-			this.state[i] = aggr.state || aggr.defaultState;
+			this.state[i] = aggr.state;
 		}
 	}
 }
@@ -126,7 +136,16 @@ export abstract class Aggregate<TState> {
 
 	abstract defaultState: TState
 
-	state: TState;
+	private _state: TState;
+	get state(): TState {
+		if (!this._state)
+			this._state = this.defaultState;
+
+		return this._state;
+	}
+	set state(value: TState) {
+		this._state = value;
+	}
 
 	constructor() {
 		this.state = this.defaultState;
