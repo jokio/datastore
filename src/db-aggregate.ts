@@ -39,6 +39,8 @@ export class AggregateRoot<TState extends Entity> {
 			this.state = await this.db.get(id);
 		}
 
+
+
 		return this.state;
 	}
 
@@ -87,8 +89,25 @@ export class AggregateRoot<TState extends Entity> {
 	}
 }
 
-export class Aggregate<TState> {
-	constructor(protected state: TState) { }
+export abstract class Aggregate<TState> {
+
+	abstract get defaultState(): TState
+
+	private _state: TState;
+	protected get state(): TState {
+		return this._state || this.defaultState;
+	}
+	protected set state(value: TState) {
+		this._state = value;
+	}
+
+	constructor() {
+		this.state = this.defaultState;
+	}
+
+	load(state: TState) {
+		this.state = state;
+	}
 }
 
 export class AggregateRootResolver {
