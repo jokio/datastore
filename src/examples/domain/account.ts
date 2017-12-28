@@ -1,4 +1,4 @@
-import { AggregateRoot, Entity, DomainEvent } from "../../";
+import { AggregateRoot, Entity, DomainEvent, uniqueId } from "../../";
 
 
 
@@ -17,7 +17,7 @@ export class AccountAggregate extends AggregateRoot<AccountState> {
 	async register(props: RegisterProps) {
 
 		const defaultProps = {
-			id: Date.now().toString(),
+			id: uniqueId(),
 			amount: 0
 		}
 
@@ -31,11 +31,12 @@ export class AccountAggregate extends AggregateRoot<AccountState> {
 			accountId: this.state.id,
 		}
 
-		const isSuccess = await this.save(AccountAggregate.Events.Registered, eventData);
-		if (!isSuccess)
-			throw new Error('Operation Failed');
 
-		return this.state;
+		let startTime = Date.now();
+		const result = await this.save(AccountAggregate.Events.Registered, eventData, true);
+		console.log('xx', Date.now() - startTime); startTime = Date.now();
+
+		return result;
 	}
 }
 

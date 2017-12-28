@@ -32,14 +32,9 @@ export abstract class AggregateRoot<TState extends Entity> {
 
 
 	async load(id: any) {
-
-		if (this.parentTransaction) {
-			const dbTransaction = new DbTransaction<TState>(this.kind, this.datastore, this.parentTransaction);
-			this.state = await dbTransaction.get(id);
-		}
-		else {
-			this.state = await this.db.get(id);
-		}
+		this.state = await this.db.get(id);
+		if (this.state == null)
+			throw new Error('ENTITY_NOT_FOUND');
 
 		if (this.aggregates) {
 			this.updateToAggregateStates();
@@ -53,40 +48,39 @@ export abstract class AggregateRoot<TState extends Entity> {
 
 	protected stateLoaded(state: TState) { }
 
-	protected async save<T>(Event: DomainEvent<T>, data: T) {
+	protected async save<T>(Event: DomainEvent<T>, data: T, withTransaction = false) {
 
-		const doSave = async (dbTran: DbTransaction<TState>, transaction: DatastoreTransaction) => {
-
+		const doSave = async (db: DbSetBase<TState>, transaction: DatastoreTransaction) => {
 			if (!this.state)
 				return;
 
 			this.updateFromAggregateStates();
 
 			if (this.state.lastUpdatedAt) {
-				const item = await dbTran.get(this.state.id);
-
+				const item = await db.get(this.state.id);
 				if (item.lastUpdatedAt.toString() != this.state.lastUpdatedAt.toString())
 					throw new Error('VERSION_CHANGED');
 			}
+			this.state.lastUpdatedAt = new Date();
 
-			await dbTran.save(this.state);
+			await db.save(this.state);
 
 			this.updateToAggregateStates();
 
-			await Event.post({ transaction, data });
+			Event.post({ transaction, data });
 		}
 
 		if (this.parentTransaction) {
+			await doSave(this.db, this.parentTransaction);
+			return this.state;
+		}
 
-			const dbTransaction = new DbTransaction<TState>(this.kind, this.datastore, this.parentTransaction);
-
-			await doSave(dbTransaction, this.parentTransaction);
-
+		if (!withTransaction) {
+			await doSave(this.db, null);
 			return this.state;
 		}
 
 		await this.transaction(doSave);
-
 		return this.state;
 	}
 
@@ -155,7 +149,7 @@ export abstract class Aggregate<TState> {
 export class AggregateRootResolver {
 	constructor(private datastore: Datastore) { }
 
-	get<T>(aggregateType: AggregateConstructor<T>, transaction?: DatastoreTransaction): T {
+	get<T extends AggregateRoot<TState>, TState extends Entity>(aggregateType: AggregateConstructor<T>, transaction?: DatastoreTransaction): T {
 		return new aggregateType(this.datastore, transaction);
 	}
 }

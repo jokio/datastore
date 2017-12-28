@@ -43,10 +43,8 @@ export abstract class DbSetBase<TEntity extends Entity> {
 			}
 		};
 
-		const result = await this.onSave(entity);
-		const result2 = await this.onGet(entity.key);
-
-		return result2;
+		await this.onSave(entity);
+		return await this.onGet(entity.key);
 	}
 
 	async get(id: any): Promise<TEntity> {

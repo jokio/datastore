@@ -1,4 +1,4 @@
-import { AggregateRoot, Entity, DomainEvent, Aggregate } from "../../";
+import { AggregateRoot, Entity, DomainEvent, Aggregate, uniqueId } from "../../";
 
 
 export class CustomerAggregate extends AggregateRoot<CustomerState> {
@@ -8,7 +8,7 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 		AccountsCountUpdated: new DomainEvent<AccountsCountUpdatedEvent>(),
 	}
 
-	aggregates = {
+	protected aggregates = {
 		operations: new OperationsAggregate()
 	}
 
@@ -20,7 +20,7 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 	register(props: RegisterCustomerProps) {
 
 		const defaultProps = {
-			id: Date.now().toString(),
+			id: uniqueId(),
 			accountsCount: 0,
 			operations: this.aggregates.operations.defaultState,
 		}
@@ -58,7 +58,9 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 			totalCount: this.state.accountsCount,
 		}
 
-		return await this.save(CustomerAggregate.Events.AccountsCountUpdated, eventData);
+		const result = await this.save(CustomerAggregate.Events.AccountsCountUpdated, eventData);
+
+		return result;
 	}
 }
 
