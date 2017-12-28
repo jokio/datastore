@@ -1,6 +1,5 @@
 import { AggregateRoot, Entity, DomainEvent, Aggregate, uniqueId } from "../../";
 
-
 export class CustomerAggregate extends AggregateRoot<CustomerState> {
 
 	static Events = {
@@ -63,6 +62,31 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 		return result;
 	}
 }
+
+
+export const registerPure = (props: RegisterCustomerProps) => _ => {
+
+	const defaultProps = {
+		id: uniqueId(),
+		accountsCount: 0,
+		operations: this.aggregates.operations.defaultState,
+	}
+
+	const state = {
+		...defaultProps,
+		...props,
+	}
+
+	const eventData = {
+		id: this.state.id,
+		name: this.state.name,
+		accountsCount: this.state.accountsCount,
+	}
+
+	return state;
+}
+
+export const register = compose()
 
 
 // State

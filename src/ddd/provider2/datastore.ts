@@ -1,33 +1,35 @@
 import * as Datastore from '@google-cloud/datastore';
 import { DatastoreKey } from '@google-cloud/datastore/entity';
-import { uniqueId } from '../';
+import { uniqueId } from '../../';
 
 
 export const VERSION_CHANGED = 'VERSION_CHANGED';
 
 
 // api
-export const configure = (credentials) => (state?: Entity) => {
-	console.log('configure', state);
+export const configure = (credentials) => {
 
-	const localState: any = state || {}
+	credentials = (typeof credentials === 'string')
+		? JSON.parse(credentials)
+		: credentials
 
-	localState['@jokio/datastore/db'] = new Datastore({ credentials })
-
-	return localState
+	return new Datastore({ credentials })
 }
 
-export const save = (props: SaveProps) => async (state: Entity): Promise<Entity> => {
-	console.log('save', props);
+export const get = async ({ db, kind, id }): Promise<Entity> => {
 
-	const { kind, useTransaction = false } = props;
+	const key = db.key([kind, id])
 
-	const db = getDb(state)
+	const [serverState]: [any] = await db.get(key)
+
+	return serverState
+}
+
+export const save = ({ db, kind, useTransaction = false }: SaveProps) => async (state: Entity): Promise<Entity> => {
+
 	const id = state.id || uniqueId()
 	const key = db.key([kind, id])
 	const isUpdate = !!state.version
-
-	console.log('2', kind);
 
 	if (isUpdate) {
 		return useTransaction
@@ -41,19 +43,10 @@ export const save = (props: SaveProps) => async (state: Entity): Promise<Entity>
 	return state
 }
 
-export const get = ({ kind, id }) => async (state: Entity): Promise<Entity> => {
-
-	const db = getDb(state)
-	const key = db.key([kind, id])
-
-	const [serverState]: [any] = await db.get(key)
-
-	return serverState
-}
-
 
 // types
 export interface SaveProps {
+	db: Datastore
 	kind: string
 	useTransaction?: boolean
 }
