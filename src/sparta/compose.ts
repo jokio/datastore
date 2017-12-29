@@ -8,7 +8,7 @@ export const compose = <TState>(...functions: ComposeFunction<TState>[]) => {
 	return (functions.length === 0)
 		? arg => arg
 		: functions.reduce(
-			// async function inside reducer ^^
+			// async function inside reducer function ^^
 			(a, b) => async (...args) => {
 				const state: TState = await a(...args)
 				if (!state)
