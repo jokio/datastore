@@ -64,7 +64,7 @@ export class CustomerAggregate extends AggregateRoot<CustomerState> {
 }
 
 
-export const registerPure = (props: RegisterCustomerProps) => _ => {
+export const registerPure = (props: RegisterCustomerProps) =>  => {
 
 	const defaultProps = {
 		id: uniqueId(),

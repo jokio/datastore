@@ -9,7 +9,11 @@ import { Event } from './event';
 
 export type DomainEventAction<TData> = (data: TData) => Promise<void>;
 
-export class DomainEvent<TData> extends Event<DomainEventData<TData>> { }
+export class DomainEvent<TData> extends Event<DomainEventData<TData>> {
+	post(data, context) {
+		super.publish({ data, context });
+	}
+}
 
 export abstract class AggregateRoot<TState extends Entity> {
 
@@ -161,6 +165,6 @@ export interface AggregateConstructor<T> {
 }
 
 export interface DomainEventData<TData> {
-	transaction: DatastoreTransaction
+	context: any
 	data: TData
 }

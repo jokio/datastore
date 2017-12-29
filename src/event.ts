@@ -1,5 +1,5 @@
 
-export type EventAction<TData> = (data: TData) => Promise<void>;
+export type EventAction<TEventData> = (event: TEventData) => Promise<void> | void;
 
 export class Event<TData>  {
 	private actions: EventAction<TData>[] = [];
@@ -17,7 +17,7 @@ export class Event<TData>  {
 		}
 	}
 
-	async post(eventData) {
+	protected async publish(eventData) {
 		if (!this.actions.length) return;
 
 		for (let i = 0; i < this.actions.length; i++) {
