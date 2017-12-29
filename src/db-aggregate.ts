@@ -71,7 +71,7 @@ export abstract class AggregateRoot<TState extends Entity> {
 
 			this.updateToAggregateStates();
 
-			Event.post({ transaction, data });
+			// Event.post({ transaction, data });
 		}
 
 		if (this.parentTransaction) {
